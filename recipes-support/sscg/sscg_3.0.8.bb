@@ -12,7 +12,7 @@ SRCREV  = "d95bb14960dbcb9913aac7aa65677d0827e37ce7"
 
 S = "${WORKDIR}/git"
 
-# Runtime dependencies:
+# Compilation dependencies:
 # - libtalloc: Memory pool allocator used by sscg (meta-networking layer required)
 # - popt: Command line options parsing (in openembedded-core)
 # - ding-libs: Required for path_utils (libpath_utils-dev)
@@ -26,7 +26,11 @@ DEPENDS = " \
 	ninja-native \
 	pkgconfig-native \
 "
-RDEPENDS:${PN} = "openssl-bin"
+
+# Runtime dependencies
+RDEPENDS:${PN} = "openssl-bin \
+	libpath-utils1 \
+	libtalloc"
 
 inherit meson pkgconfig
 
