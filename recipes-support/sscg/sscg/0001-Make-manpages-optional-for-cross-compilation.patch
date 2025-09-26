@@ -1,0 +1,88 @@
+From 5c89d00d6a411052fb6a7a022519955c04780c13 Mon Sep 17 00:00:00 2001
+From: Sylvain Pastor <s.pastor@elistair.com>
+Date: Fri, 26 Sep 2025 14:45:17 +0200
+Subject: [PATCH] Make manpages optional for cross-compilation
+
+Add option to disable manpage generation when cross-compiling,
+as help2man cannot execute cross-compiled binaries.
+---
+ meson.build       | 45 +++++++++++++++++++++++++--------------------
+ meson_options.txt |  1 +
+ 2 files changed, 26 insertions(+), 20 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index f868ff5..f9c67a0 100644
+--- a/meson.build
++++ b/meson.build
+@@ -38,6 +38,9 @@ version : files('sscg.version'),
+   meson_version : '>=0.59.0',
+ )
+ 
++# Add option to control manpage generation
++option_manpages = get_option('with_manpages')
++
+ cc = meson.get_compiler('c')
+ test_cflags = [
+   '-Wpointer-arith',
+@@ -370,26 +373,28 @@ configure_file(
+     output : 'config.h',
+     configuration : cdata)
+ 
+-# Generate a manpage from the POPT documentation
+-help2man = find_program('help2man')
+-
+-manpage = custom_target('manpage',
+-    output : 'sscg.8',
+-    capture : true,
+-    command : [
+-        help2man,
+-        '-s', '8',
+-        '-n', 'Tool for generating x.509 certificates',
+-        '-N',
+-        sscg,
+-    ],
+-    install : true,
+-    build_by_default : true,
+-    install_dir : join_paths(
+-        get_option('prefix'),
+-        get_option('mandir'),
+-        'man8'),
+-)
++# Generate a manpage from the POPT documentation (optional)
++if option_manpages
++    help2man = find_program('help2man')
++
++    manpage = custom_target('manpage',
++        output : 'sscg.8',
++        capture : true,
++        command : [
++            help2man,
++            '-s', '8',
++            '-n', 'Tool for generating x.509 certificates',
++            '-N',
++            sscg,
++        ],
++        install : true,
++        build_by_default : true,
++        install_dir : join_paths(
++            get_option('prefix'),
++            get_option('mandir'),
++            'man8'),
++    )
++endif
+ 
+ # Internationalization support
+ if gettext.found()
+diff --git a/meson_options.txt b/meson_options.txt
+index f399330..63d9ad5 100644
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -23,3 +23,4 @@
+ # For general development, we will skip them and run them only in the CI
+ # environment.
+ option('run_slow_tests', type : 'boolean', value : false)
++option('with_manpages', type: 'boolean', value: true, description: 'Generate man pages using help2man')
+\ No newline at end of file
+-- 
+2.34.1
+
